@@ -1,7 +1,7 @@
 import React from "react";
 
 const VideoCard = ({ info }) => {
-  console.log(info);
+  // console.log(info);
   const { snippet, statistics } = info;
   const { channelTitle, title, thumbnails } = snippet;
   return (
@@ -14,6 +14,21 @@ const VideoCard = ({ info }) => {
       </ul>
     </div>
   );
+};
+
+//HOC
+
+export const AdVideoCard = (VideoCard) => {
+  return (props) => {
+    return (
+      <div>
+        <label className="absolute bg-black text-white p-3 m-3 rounded-lg">
+          Top rated
+        </label>
+        <VideoCard {...props} />
+      </div>
+    );
+  };
 };
 
 export default VideoCard;

@@ -1,11 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { toggleMenu } from "../redux/appSlice";
+import { YOUTUBE_AUTO_SUGGEST_API } from "../utils/constants";
 
 const Header = () => {
   const dispatch = useDispatch();
+  const [searchText, setSearchText] = useState("");
+  const [suggestedOutput, setSuggestedOutput] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  useEffect(() => {
+    let timer = setTimeout(() => {
+      getAutoComplete();
+    }, 300);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchText]);
+  const getAutoComplete = async () => {
+    let data = await fetch(YOUTUBE_AUTO_SUGGEST_API + searchText);
+    let JSONData = await data.json();
+    // console.log(JSONData);
+    setSuggestedOutput(JSONData[1]);
+  };
   const ToggleHandleClick = () => {
     dispatch(toggleMenu());
+  };
+  const handleSearchText = (e) => {
+    console.log(e.target.value);
+    setSearchText(e.target.value);
   };
   return (
     <div className="grid grid-flow-col content-center p-5 m-2 shadow-lg ">
@@ -27,13 +49,30 @@ const Header = () => {
         </a>
       </div>
       <div className="col-span-8 ">
-        <input
-          type="text"
-          className="w-1/2 px-2 border border-gray-400 p-2 rounded-l-3xl"
-        />
-        <button className=" border px-2 p-2 bg-gray-200  rounded-r-3xl">
-          🔍
-        </button>
+        <div>
+          <input
+            type="text"
+            className="w-1/2 px-2 border border-gray-400 p-2 rounded-l-3xl"
+            value={searchText}
+            onChange={handleSearchText}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setShowSuggestions(false)}
+          />
+          <button className=" border px-2 p-2 bg-gray-200  rounded-r-3xl">
+            🔍
+          </button>
+        </div>
+        {showSuggestions && (
+          <div className="absolute bg-white py-2 px-2 w-[29rem]   border-gray-100">
+            <ul>
+              {suggestedOutput.map((s) => (
+                <li key={s} className="py-2 px-3 shadow-sm hover:bg-gray-100">
+                  🔍 {s}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
       <div className="col-span-1 flex">
         <img
