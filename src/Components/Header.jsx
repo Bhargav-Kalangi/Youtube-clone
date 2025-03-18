@@ -1,16 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toggleMenu } from "../redux/appSlice";
 import { YOUTUBE_AUTO_SUGGEST_API } from "../utils/constants";
+import { cacheResults } from "../redux/searchSlice";
 
 const Header = () => {
   const dispatch = useDispatch();
+
   const [searchText, setSearchText] = useState("");
   const [suggestedOutput, setSuggestedOutput] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const searchCache = useSelector((store) => store?.search);
+
+  const ToggleHandleClick = () => {
+    dispatch(toggleMenu());
+  };
+  const handleSearchText = (e) => {
+    // console.log(e.target.value);
+    setSearchText(e.target.value);
+  };
+  console.log(searchCache[searchText]);
   useEffect(() => {
     let timer = setTimeout(() => {
-      getAutoComplete();
+      if (searchCache[searchText]) {
+        setSuggestedOutput(searchCache[searchText]);
+      } else {
+        getAutoComplete();
+      }
     }, 300);
     return () => {
       clearTimeout(timer);
@@ -21,13 +37,7 @@ const Header = () => {
     let JSONData = await data.json();
     // console.log(JSONData);
     setSuggestedOutput(JSONData[1]);
-  };
-  const ToggleHandleClick = () => {
-    dispatch(toggleMenu());
-  };
-  const handleSearchText = (e) => {
-    console.log(e.target.value);
-    setSearchText(e.target.value);
+    dispatch(cacheResults({ [searchText]: JSONData[1] }));
   };
   return (
     <div className="grid grid-flow-col content-center p-5 m-2 shadow-lg ">
@@ -65,7 +75,7 @@ const Header = () => {
         {showSuggestions && (
           <div className="absolute bg-white py-2 px-2 w-[29rem]   border-gray-100">
             <ul>
-              {suggestedOutput.map((s) => (
+              {suggestedOutput?.map((s) => (
                 <li key={s} className="py-2 px-3 shadow-sm hover:bg-gray-100">
                   🔍 {s}
                 </li>
